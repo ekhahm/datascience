@@ -1,0 +1,98 @@
+---
+title: "Assignment 1 - Loading Data into a Data Frame"
+author: "Eunkyu Hahm"
+date: "8/29/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Importing the data
+
+
+```{r}
+url<-"https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data"
+Mushroom_data <- read.csv(file = url, header = FALSE, sep=",")
+head(Mushroom_data)
+
+```
+
+
+## Creating new data frame from only certain columns 
+
+```{r}
+mushroom <-Mushroom_data[,c(1, 4, 10, 22, 23)]
+head(mushroom)
+```
+## Adding Headers
+
+
+```{r}
+rawColumns=c("class", "capcolor", "gillcolor", "population", "Habitat")
+colnames(mushroom) <- rawColumns
+head(mushroom)
+```
+
+## Replacing the abbreviations used in the data 
+```{r}
+df <- data.frame(mushroom$class, mushroom$capcolor, mushroom$gillcolor, mushroom$population, mushroom$Habitat)
+
+
+levels(df$mushroom.class)[levels(df$mushroom.class)== "p"]<- "poisonous"
+levels(df$mushroom.class)[levels(df$mushroom.class)== "e"]<- "edible"
+
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "n"]<- "brown"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "b"]<- "buff"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "c"]<- "cinnamon"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "g"]<- "gray"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "r"]<- "green"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "p"]<- "pink"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "u"]<- "purple"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "e"]<- "red"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "w"]<- "white"
+levels(df$mushroom.capcolor)[levels(df$mushroom.capcolor)== "y"]<- "yellow"
+
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "k"]<- "black"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "n"]<- "brown"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "b"]<- "buff"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "h"]<- "chocolate"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "g"]<- "gray"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "r"]<- "green"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "o"]<- "orange"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "p"]<- "pink"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "u"]<- "purple"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "e"]<- "red"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "w"]<- "white"
+levels(df$mushroom.gillcolor)[levels(df$mushroom.gillcolor)== "y"]<- "yellow"
+
+
+levels(df$mushroom.population)[levels(df$mushroom.population)== "a"]<- "abundant"
+levels(df$mushroom.population)[levels(df$mushroom.population)== "c"]<- "clustered"
+levels(df$mushroom.population)[levels(df$mushroom.population)== "n"]<- "numerous"
+levels(df$mushroom.population)[levels(df$mushroom.population)== "s"]<- "scattered"
+levels(df$mushroom.population)[levels(df$mushroom.population)== "v"]<- "several"
+levels(df$mushroom.population)[levels(df$mushroom.population)== "y"]<- "solitary"
+
+levels(df$mushroom.Habitat)[levels(df$mushroom.Habitat)== "g"]<- "grasses"
+levels(df$mushroom.Habitat)[levels(df$mushroom.Habitat)== "l"]<- "leaves"
+levels(df$mushroom.Habitat)[levels(df$mushroom.Habitat)== "m"]<- "meadow"
+levels(df$mushroom.Habitat)[levels(df$mushroom.Habitat)== "p"]<- "paths"
+levels(df$mushroom.Habitat)[levels(df$mushroom.Habitat)== "u"]<- "urban"
+levels(df$mushroom.Habitat)[levels(df$mushroom.Habitat)== "w"]<- "waste"
+levels(df$mushroom.Habitat)[levels(df$mushroom.Habitat)== "d"]<- "woods"
+
+
+head(df)
+```
+
+
+## Summary of data 
+
+```{r}
+summary(mushroom)
+```
+
+
+
