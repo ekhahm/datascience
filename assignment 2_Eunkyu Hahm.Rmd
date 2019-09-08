@@ -1,0 +1,60 @@
+---
+title: "Assignment 2 - SQL and R"
+author: "Eunkyu Hahm"
+date: "9/7/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Choose six recent popular movies. Ask at least five people that you know (friends, family, classmates, imaginary friends) to rate each of these movie that they have seen on a scale of 1 to 5. Take the results (observations) and store them in a SQL database. Load the information into an R dataframe.
+Your deliverables should include your SQL scripts and your R Markdown code, posted to GitHub.
+
+
+## Loading RMySQL
+```{r Loading}
+library(RMySQL)
+```
+
+## Connecting mysql server
+```{r}
+drv <- dbDriver("MySQL")
+con <- dbConnect(drv, user= "root", password = "gkadmsrb0", dbname = "movies", host="localhost")
+```
+
+## Take the observations and store them in a sql databse
+
+1. Movie table 
+
+```{r}
+movie <- "SELECT * from movies;"
+movie_title <- dbGetQuery(con, movie)
+movie_title
+```
+
+2. Participants table 
+```{r}
+subjects <- "SELECT * from subjects;"
+participants <- dbGetQuery(con, subjects)
+participants
+```
+3. Rating table
+
+```{r}
+ratings <- "SELECT * from ratings;"
+movies_ratings <- dbGetQuery(con, ratings)
+movies_ratings
+```
+
+5. Summary of movie ratings
+Average ratings of each movie. The movie Avengers:endgame has the highest rating. 
+```{r}
+summary  <- "select title, avg(ratings) from movies, ratings
+where movies.mID = ratings.mID
+group by movies.title
+order by avg(ratings);"
+sum_rating <- dbGetQuery(con, summary)
+sum_rating
+```
