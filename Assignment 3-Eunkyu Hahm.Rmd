@@ -1,0 +1,106 @@
+---
+title: 'Assignmnet 3 '
+author: "Eunkyu Hahm"
+date: "9/12/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Please deliver links to an R Markdown file (in GitHub and rpubs.com) with solutions to problems 3 and 4 from chapter 8 of Automated Data Collection in R.  Problem 9 is extra credit.  You may work in a small group, but please submit separately with names of all group participants in your submission.
+
+Here is the referenced code for the introductory example in #3:
+
+```{r}
+raw.data <-"555-1239Moe Szyslak(636) 555-0113Burns, C. Montgomery555-6542Rev. Timothy Lovejoy555 8904Ned Flanders636-555-3226Simpson, Homer5553642Dr. Julius Hibbert"
+
+raw.data
+```
+
+
+##Loading stringr package
+```{r stringr}
+library(stringr)
+```
+
+## Problem #3 
+Copy the introductory example. The vector name stores the extracted names. 
+
+```{r}
+names <- unlist(str_extract_all(raw.data, "[[:alpha:]., ]{2,}"))
+names
+```
+
+(a) Use the tools of this chapter to rearrange the cector so that all elements conform to the standard first_name last_name. 
+
+Removing titles and middle name:
+```{r title}
+no_title <- sub("[A-z]{1, }\\.","",names )
+no_title
+```
+
+First name and Last name
+```{r first_last }
+first_last <- sub("(\\w+),\\s+(\\w+)","\\2 \\1", no_title )
+first_last
+```
+(b) Construct a logical vector indicating whether a character has a title(i.e.Rev, and Dr. )
+```{r title vector}
+title_name <- str_detect(names, "[A-z]{2,}[.]")
+title_name
+```
+
+(c) Costruct a logical vector indicating whether a character has a second name. 
+```{r second_name}
+#remove title 
+non_title <- sub("[A-z]{2, }\\.","",names )
+second_name <- str_detect(non_title, "[A-z]{1,}\\.")
+second_name
+```
+
+## Problem #4
+Describe the types of strings that conform to the following regular expressions and construct an example that is matched by the regular expression. 
+
+(a) [0-9]+\\$
+ one digit or more digits followed by a dollar sign. 
+```{r (a)}
+a <- c("4300$", "120$", "$10", "$1")
+str_count(a, "[0-9]+\\$")
+```
+(b) \\b[a-z]{1,4}\\b
+
+small letter a to z at lease 1 time but not more than 4 times with word edge each side. 
+```{r b}
+b <- c("1abc", "terminal", "size", "p", "1001")
+str_detect(b, "\\b[a-z]{1,4}\\b")
+```
+
+(c) .*?\\.txt$
+start with any character followed by end with ".txt" 
+
+```{r c}
+c <- c(".txt", "8.txt", "case.txt", "txt", "123")
+str_extract(c, ".*?\\.txt$")
+```
+
+
+(d) \\d{2}/\\d{2}/\\d{4}
+two digits followed by forward slash("/") and two digits followed by forward slash("/") and followed by any four digits 
+
+```{r d}
+d <- c("10/30/109", "11/31/2019", "3-19-2001", "1985/03/14", "4/5/1000")
+str_detect(d, "\\d{2}/\\d{2}/\\d{4}")
+```
+
+
+(e) <(.+?)>.+?</\\1>
+any items in between < > followed by any items and backreferecning the first items in < > with forward slash("/")
+```{r e}
+e <- c("<random>Description</random>", "<random>Description<random>", "<tools>Useage</tools>", "<tools>Useage</tool>", "size", "<p>123</p>", "<1>False</1>")
+str_extract_all(e, "<(.+?)>.+?</\\1>")
+```
+
