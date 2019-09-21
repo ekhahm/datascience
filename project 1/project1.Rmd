@@ -1,0 +1,120 @@
+---
+title: "Project 1"
+author: "Eunkyu Hahm"
+date: "9/14/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project 1
+
+In this project, you’re given a text file with chess tournament results where the information has some structure. Your job is to create an R Markdown file that generates a .CSV file (that could for example be imported into a SQL database) with the following information for all of the players:
+
+Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre Chess Rating of Opponents
+For the first player, the information would be:
+Gary Hua, ON, 6.0, 1794, 1605
+1605 was calculated by using the pre-tournament opponents’ ratings of 1436, 1563, 1600, 1610, 1649, 1663, 1716, and dividing by the total number of games played.
+
+If you have questions about the meaning of the data or the results, please post them on the discussion forum. Data science, like chess, is a game of back and forth...
+The chess rating system (invented by a Minnesota statistician named Arpad Elo) has been used in many other contexts, including assessing relative strength of employment candidates by human resource departments.
+
+You may substitute another text file (or set of text files, or data scraped from web pages) of similar or greater complexity, and create your own assignment and solution. You may work in a small team. All of your code should be in an R markdown file (and published to rpubs.com); with your data accessible for the person running the script.
+
+## Understand the project
+1. Read given text file.
+2. create an R Markdaown file that generate .csv file.
+3. The .csv file includes  
+   Player's name  
+   Player's state  
+   Total number of points  
+   Player's pre-rating  
+   Player's average pre chess rating of opponents  
+   (= total pre-tourament opponents' ratings divided by the total number of games played)  
+  
+
+## Read text file
+```{r read text}
+tournament <- read.table("/Users/ekhahm/desktop/tournamentinfo.txt",sep="\n")
+tournamentinfo <- tournament[-c(1:4),]
+tournamentinfo
+```
+
+## Load package
+```{r stringr}
+library(stringr)
+```
+
+## Extract information from text file
+
+```{r player information}
+#Extract players' names
+playername<-unlist(str_extract_all(tournamentinfo, "[A-Z]+\\s[A-Z]+\\s?[A-Z]*\\s[A-Z]*"))
+
+#Extract players' states
+playerstate <- unlist(str_extract_all(tournamentinfo, "^\\s+[A-Z]{2}"))
+playerstates <- str_remove_all(playerstate, "\\s+")
+
+#Extract total number of points
+totalpoint <- unlist(str_extract_all(tournamentinfo, "\\|[[:digit:]]+\\.[[:digit:]]"))
+totalpoints <- str_remove_all(totalpoint, "\\|")
+
+#Extract players' pre-ratings
+pre_rating <- unlist(str_extract_all(tournamentinfo, "R:+\\s+[[:digit:]]{1,}"))
+pre_ratings <- str_remove_all(pre_rating, "R:+\\s+")
+
+#Combine them into data.frame
+tournament_table <- data.frame(number=seq.int(1,64),playername, playerstates, totalpoints, pre_ratings)
+tournament_table
+```
+
+
+## Calculate players' averages pre chess rating of opponents
+
+
+```{r result_match_table}
+# Convert text file into dataframe
+tournamentinfo1 <- as.data.frame(matrix(unlist(str_split(tournamentinfo, "\\|")), nrow= 64, byrow=T), stringAsFactors= FALSE)
+ 
+# Select columns of interest
+result_match <- data.frame(tournamentinfo1$V1, tournamentinfo1$V4, tournamentinfo1$V5, tournamentinfo1$V6,tournamentinfo1$V7, tournamentinfo1$V8, tournamentinfo1$V9,tournamentinfo1$V10)
+
+# Change column names
+names(result_match) <- c("number", "R1", "R2", "R3", "R4", "R5", "R6", "R7")
+
+# Extract only numbers
+result_match$R1 <- str_extract(result_match$R1, "[:digit:]+")
+result_match$R2 <- str_extract(result_match$R2, "[:digit:]+")
+result_match$R3 <- str_extract(result_match$R3, "[:digit:]+")
+result_match$R4 <- str_extract(result_match$R4, "[:digit:]+")
+result_match$R5 <- str_extract(result_match$R5, "[:digit:]+")
+result_match$R6 <- str_extract(result_match$R6, "[:digit:]+")
+result_match$R7 <- str_extract(result_match$R7, "[:digit:]+")
+result_match
+```
+
+```{r}
+# Calculate average pre chess rating of opponents
+avg_pre_rating <- array(0, dim=nrow(tournament_table))
+for ( i in 1:64){
+      avg_pre_rating[i]<- floor(mean(c(as.numeric(str_trim(tournament_table$pre_ratings[as.numeric(result_match$R1[i])])),
+            as.numeric(str_trim(tournament_table$pre_ratings[as.numeric(result_match$R2[i])])),
+            as.numeric(str_trim(tournament_table$pre_ratings[as.numeric(result_match$R3[i])])),
+            as.numeric(str_trim(tournament_table$pre_ratings[as.numeric(result_match$R4[i])])),
+            as.numeric(str_trim(tournament_table$pre_ratings[as.numeric(result_match$R5[i])])),
+            as.numeric(str_trim(tournament_table$pre_ratings[as.numeric(result_match$R6[i])])),
+            as.numeric(str_trim(tournament_table$pre_ratings[as.numeric(result_match$R7[i])]))), na.rm = TRUE))
+};       
+# Add average_pre_rating column on tournament_table 
+tournament_table$avg_pre_rating <- avg_pre_rating
+tournament_table
+```
+
+## Generate the r file into .csv file
+```{r csv file}
+write.csv(tournament_table, file = "Data607project1.csv")
+```
