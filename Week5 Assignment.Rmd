@@ -1,0 +1,200 @@
+---
+title: "Week5 assignment"
+author: "Eunkyu Hahm"
+date: "9/27/2019"
+output:
+  html_document:
+    df_print: paged
+    highlight: kate
+    number_sections: yes
+    theme: united
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment – Tidying and Transforming Data
+
+|        |         | Los Angeles | Phoenix | San Diego | San Francisco | Seattle |
+|--------|---------|-------------|---------|-----------|---------------|---------
+|ALASKA  | on time | 497         |221      |212        |503            |1841     |
+|        | delayed |62           |12       |20         |102            |305      |
+|AM WEST | on time |694          |4840     |383        |320            |201      |
+|        | delayed |117          |415      |65         |129            |61       |
+
+Table 1: The chart above describes arrival delays for two airlines across five destinations.
+
+
+## Loading packeges 
+Firstly, we wil load packages that are used for data tidying and transforming  
+
+* Two packages  
+  + tidyr
+  + dplyr 
+  + ggplot2
+  
+```{r loading packages}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+## Create a .CSV file that incldue the table 1 information 
+
+In order to write .CSV file, we begin with builing a table and put the values in it. And then write out .CSV file. 
+```{r csv}
+#create the table in r 
+table1 <- rbind(c(NA, NA, "Los_Angeles", "Phoenix", "San Diego", "San Francisco", "Seattle"),
+          c("ALASKA","on time",497,221,212,503,1841),
+          c(NA, "delayed", 62,12,20,102,305),
+          c("AM WEST", "on time", 694, 4840,383,320,201),
+          c(NA, "delayed", 117,415,65,129,61))
+
+# write out .csv file
+write.csv(table1, file = "Flight_arrival_dealy.csv")
+
+```
+
+## Read the information from the .csv file above into R
+
+Let's read the .CSV file that we create above. 
+```{r read csv}
+delay <- read.csv("Flight_arrival_dealy.csv",header = TRUE, stringsAsFactors = FALSE)
+delay
+```
+
+## Modify the table 
+
+The table from .CSV file is a little untidy and messy. There are no headers and two NA values that has to be replaced. It will be modified with adding column names, removing unnecessary row and column, and filling NAs with values
+```{r}
+# check current column names 
+colnames(delay) = delay[1,]
+
+# remove the first column and row
+delay1= delay[-1, ]
+delay2= delay1[ ,-1]
+
+# change column names 
+colnames(delay2)[1] <- "Airline"
+colnames(delay2)[2] <- "Arrival_Status"
+
+# fill NA with Airline name on "delayed" row 
+delay2[2,1] <- "ALASKA"
+delay2[4,1] <- "AM WEST"
+delay2
+```
+
+## Perform analysis to compare the arrival delays for the two airlines with using *tidyr* and *dplyr*.  
+
+Let's take a look at the table above and find the variables.   
+
+* Variables in the table  
+  + Airline  
+  + Arrival status  
+  + City  
+  + Count 
+
+  
+### Collapse multiple columns into four columns; (Airline, Arrival_Status, City, Count)
+
+Since the format of delay2 table is untidy, let's re-structure the table into tidy format with using gather() function that collapse multibple comlumns into four columns. 
+
+```{r collapse columns}
+delay_new <- delay2 %>%
+              gather(city, count, c("Los_Angeles":"Seattle"))
+delay_new
+
+```
+
+### Return rows with matching specific airline and order by arrival status 
+
+Let's divide into two table according to Airline; Alaska and Am west. To extract the rows of interest, filter() function is used and then arrange() function is used to make an order by arrival status. We will use the pipe operate here because we will pipe the results after one expression into a second expression.
+
+```{r matching conditions}
+## return all rows with matching ALASKA airline
+alaska <- delay_new %>%
+            filter(Airline == "ALASKA") %>%
+            arrange(Arrival_Status)
+## return all rows with matching AM WEST airline
+amwest <- delay_new %>%
+            filter(Airline == "AM WEST") %>%
+            arrange(Arrival_Status)
+
+alaska
+amwest
+```  
+
+
+### Graph expression   
+
+Now we are creating barplot by using ggplot2 package in order to compare observations of each city. Because the total of flights are different between citites, we will generate stacked barplot with normalized height, so that it will be easier to compare the data. 
+
+```{r barplot}
+# take each table's information
+str(alaska)
+str(amwest)
+
+# change count valiable from charactor to numeric
+ggplot(alaska, aes(fill= Arrival_Status, x = city, y = as.numeric(count)), ylim(0,5000)) +
+  # stacked barplot with normalized height
+  geom_bar(stat = "identity", position = "fill")+
+  # change title of barplot
+  ggtitle("ALASKA Airline") +
+  # change x-axis name
+  xlab("city") +
+  # change y-axis name
+  ylab("count")
+
+# change count valiable from charactor to numeric  
+ggplot(amwest, aes(fill= Arrival_Status, x = city, y = as.numeric(count)), ylim(0,5000)) +
+  # stacked barplot with normalized height
+  geom_bar(stat = "identity", position = "fill")+
+  # change title of barplot
+  ggtitle("AM WEST Airline") +
+  # change x-axis name
+  xlab("city") +
+  # change y-axis name
+  ylab("count")
+
+```
+
+### Calculating percentage of delayed flights for each airline   
+
+We will calculate how much proportions of delayed flights and on time flights for each airline. 
+Each airline table is grouped by arrival_status, calculate total count for each arrival status , and then add a column for percentage of each case. 
+
+```{r}
+#Alaska airline
+# make count variable type into numeric 
+alaska$count <- as.numeric(alaska$count)
+alaska1 <- alaska %>%
+            group_by(Arrival_Status) %>%
+            summarise(total = sum(count)) %>%
+            mutate(sum(total)) %>%
+            mutate(percent = round(total/sum(total)*100))
+alaska1
+
+#Amwest airline
+amwest$count <- as.numeric(amwest$count)
+amwest1 <- amwest %>%
+            group_by(Arrival_Status) %>%
+            summarise(total = sum(count)) %>%
+            mutate(sum(total)) %>%
+            mutate(percent = round(total/sum(total)*100))
+amwest1
+
+```
+
+
+## Conclusion   
+
+1. According to the ALASKA and AM WEST barplots, San Francisco airport has the highest delayed rates among five cities for both airlines.
+
+2. According to the ALASKA and AM WEST barplots, Phoenix airpot has the lowest delayed rates among five cities for both airlines. 
+
+3. Based on the alaska1 and amwest1 tables, Alaska airline has higher delayed rate in the total number of flights than AM WEST airline. The delayed rate for Alaska is 13% and the rate for AM WEST is 11%. 
+But the total number of flights are different which Alaska has total 3775 flights and AM WEST has total 7225 flights. 
