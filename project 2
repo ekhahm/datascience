@@ -1,0 +1,363 @@
+---
+title: "Project 2"
+author: "Eunkyu Hahm"
+date: "10/4/2019"
+output:
+  html_document:
+    df_print: paged
+    highlight: tango
+    theme: united
+    pandoc_args: [
+      "--title-prefix", "Foo",
+      "--id-prefix", "Bar"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# *Loading packages*  
+Firstly, we will load packages that are used for data tidying and transforming  
+  
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(maps)
+library(usmap)
+```
+
+## 3 different 'wide' datasets {.tabset .tabset-fade} 
+
+### Dataset 1. Zika 
+
+1.Reading .csv file 
+
+Let's read the .CSV file. 
+In order to change type of variable "value" into numeric, use transform() and convert into numeric class.  
+```{r}
+zika <- read.csv("/Users/ekhahm/Desktop/cdc_zika.csv", header = TRUE, stringsAsFactors = FALSE, na.strings = TRUE)
+zika <- transform(zika, value= as.numeric(value))
+head(zika)
+class(zika$value)
+```
+**Question:**  
+A. Which state or territories of US is the highest zika report count?  
+B. What the US zika reported data look like monthly in 2016?  
+
+2. Modify the table  
+
+1) Use Select() to exact necessary variables from table. We need rport_date, location, data_field, and value.
+
+```{r}
+#select necessary columns only
+zika_1 <- select(zika, report_date, location, data_field, value)
+head(zika_1)
+
+```
+
+
+2) Separate report_date variable into three columns; year, month and date  
+
+To do monthly analysis in 2016, we use separate() function to separate values by "-". Before separate() values, since raw data has two different date types such as m/d/y and y_m_d, make them in same format **y-m-d** and make a separation. Also, after dividing variable, some of values in year variable has to be modified. For example "0015" is replaced into "2015".
+
+```{r}
+#seperate report_date into 3 columns with year, month and date
+a <- as.Date(zika_1$report_date, format = "%m/%d/%Y")
+b <- as.Date(zika_1$report_date, format = "%Y_%m_%d")
+a[is.na(a)] <- b[!is.na(b)]
+zika_1$report_date <- a
+zika_2 <-  zika_1 %>%
+          separate(report_date, sep = "-", into =c("year","month", "day") )%>%
+          select(year, month, day, location, data_field, value)
+zika_2$year[zika_2$year == "0015"] <- "2015"
+zika_2$year[zika_2$year == "0016"] <- "2016"
+head(zika_2)
+
+```
+
+3) Separate location into two variables  
+
+Because we will focus on the data only for US, use separate() function once again to separate location variable into two variables which are country and state. Then filter out data that only country equals to "United_States" (This includes states and US territories). 
+
+```{r}
+# Separate column "location" into 2 columns: country and local
+
+zika_US<-  zika_2 %>%
+          separate(location, sep = "-", into =c("country", "state"), remove = TRUE) %>%
+          filter(country == "United_States") 
+zika_US
+
+```
+
+Analysis
+
+1) Total number of zika reports including states and US territories
+
+Now we are calculating sum of reported cases(both by local and travel).Firstly Group_by state and calculates total number of case by states.  
+```{r}
+# sum of zika_reported_cases
+
+zika_reported <-  zika_US %>%
+          filter(data_field == c("zika_reported_local", "zika_reported_travel")) %>%
+          group_by(state) %>%
+          summarise(sum = sum(value, na.rm=TRUE))
+        
+zika_reported
+
+```
+Based on the table above, Puerto Rico which is part of US territory, has the most zika reported cases. 
+
+
+2) Total number of zika reported case including only states. 
+
+Let's compare sum of cases by states and try to figure out which state of US has the most of cases. USMAP package is used to make a map graph here. 
+```{r}
+# map plot
+plot_usmap(data = zika_reported, values = "sum", color = "red") + 
+  scale_fill_continuous(name = "zika_reported (2016)", label = scales::comma) + 
+  theme(legend.position = "right")
+
+```
+
+
+
+3) Zika local cases vs, cases after travel by states and US territories 
+
+Now we are going to divide into two categories which are reported locally and reported after travel. ggplot bar chart is used to compare all states and territories. 
+```{r}
+# sum of zika_reported by state and year
+
+zika_reported_local <-  zika_US %>%
+          filter(zika_US$data_field == "zika_reported_local") %>%
+          select(year, month, state, value) %>%
+          group_by(state, year) %>%
+          summarise(sum = sum(value, na.rm=TRUE))
+zika_reported_local        
+p <- ggplot(zika_reported_local, aes(x=state, y=sum))+
+         geom_bar(stat= "identity",width = 0.5) +
+         ylab("sum of count") +
+         ggtitle("Zika_US_local")+
+         theme(axis.title.x = element_text(size = 10),
+         axis.text.x = element_text(angle = 90, size = 7),
+         axis.text.y = element_text(size = 7))
+
+p
+
+```
+
+
+```{r}
+# sum of zika_reported by state and year
+
+zika_reported_travel <-  zika_US %>%
+          filter(data_field == "zika_reported_travel") %>%
+          select(year, month, state, value) %>%
+          group_by(state, year) %>%
+          summarise(sum = sum(value, na.rm=TRUE))
+zika_reported_travel        
+p1 <- ggplot(zika_reported_travel, aes(x=state, y=sum))+
+         geom_bar(stat= "identity",width = 0.5) +
+         ylab("sum of count") +
+         ggtitle("Zika_US_travel")+
+         theme(axis.title.x = element_text(size = 10),
+         axis.text.x = element_text(angle = 90, size = 6),
+         axis.text.y = element_text(size = 7))
+
+p1
+
+```
+According to two barcharts, there is none of cases zika reported locally in US mainland in 2016. All of reported cases are from US territories like Pueto Rico, American-Samoa, and US virgin island. However, reported cases after travel are distributed in all across the US. New York is the highest states for reported cases after travel. 
+
+
+4) Comparison sum of zika cases by month. 
+
+Let's analyze the data by month and take a look at trend. Line plot is used to compare two types of data. 
+```{r}
+# sum of zika reported by month
+zika_reported_month <- zika_US %>%
+                      filter(data_field== c("zika_reported_local", "zika_reported_travel")) %>%
+                      group_by(month, data_field)%>%
+                      summarise(sum =sum(value), na.rm = TRUE)
+zika_month_chart <- ggplot(zika_reported_month, aes(x= month, y= sum, group=data_field))+
+                        geom_line(aes(color= data_field)) +
+                        geom_point(aes(coler= data_field))+
+                        geom_text(aes(label = sum), vjust = -0.3) +
+                        ylim(0, 1600) +
+                        ylab("sum of count") +
+                        ggtitle("Zika_US_cases by month")
+
+zika_month_chart
+```
+
+
+**Conclusion**   
+
+A. Which state or territories of US is the highest zika report count? 
+   *Puerto Rico* where is incorporated US terriotry has the highest number of zika reports.  
+   *New York* has the highest number of zika reports among US mainland states. 
+B. What the US zika reported data look like monthly in 2016?
+   According to the line graph above, local reports increase until May 2016 and diminish after that. But travel reports is getting more and more from February to June 2016.
+
+
+ 
+### Dataset 2. NYC SAT score 
+
+1. Reading .csv file
+
+Let's read the information from the .csv file
+
+```{r}
+sat <- read.csv("/Users/ekhahm/Desktop/scores.csv", header = TRUE, stringsAsFactors = FALSE, na.strings = TRUE)
+head(sat)
+```
+
+**Question:**  
+
+A. How the student population looks like by race in all five boroughs?  
+B. How SAT scores are different by regions(boroughs)?  
+
+2. Modify a table
+
+Classes of the variables(percent.white, black, Hispanic, and Asian) are character. First, drop out "%" and transform the values into numeric type, so that it will be easier to do calculations later. 
+
+```{r}
+# borough, average percent of race, avg_sat
+
+sat$Percent.White <- gsub("%", "", sat$Percent.White)
+sat$Percent.Black <- gsub("%", "", sat$Percent.Black, perl = FALSE)
+sat$Percent.Hispanic <- gsub("%", "", sat$Percent.Hispanic, perl = FALSE)
+sat$Percent.Asian <- gsub("%", "", sat$Percent.Asian, perl = FALSE)
+
+sat <- transform (sat, Percent.White= as.numeric(Percent.White), Percent.Black = as.numeric(Percent.Black), Percent.Hispanic = as.numeric(Percent.Hispanic),Percent.Asian = as.numeric(Percent.Asian))
+
+head(sat$Percent.White)
+class(sat$Percent.White)
+
+# select necessary variables and calculate average raical population by borough 
+sat_borough <- sat %>%
+               select(Borough, Percent.White, Percent.Black, Percent.Hispanic, Percent.Asian, Average.Score..SAT.Math.,Average.Score..SAT.Reading., Average.Score..SAT.Writing.) %>%
+               group_by(Borough) %>%
+              summarise(white = mean(Percent.White, na.rm = TRUE), black = mean(Percent.Black, na.rm=TRUE), hispanic = mean(Percent.Hispanic, na.rm=TRUE), asian = mean(Percent.Asian, na.rm=TRUE))
+
+sat_borough
+```
+
+
+3. Analysis
+
+Now we are going to see student population distribution by racial status for all five boroughs. Since the table above is untidy format, using gather() function makes the table with tidy format. From the tidy format of data, barchart is created by using ggplot2. 
+
+```{r}
+# graph expression Borough, race and SAT score
+sat_borough_1 <- gather(sat_borough, race, avg_percent, 2:5)
+sat_borough_1$avg_percent <- round(sat_borough_1$avg_percent)
+sat_borough_1
+sat_borough_chart <- ggplot(sat_borough_1, aes(x= Borough, y= avg_percent, fill=race))+
+                     geom_bar(stat = "identity", position = "dodge")+
+                     geom_text(aes(label=avg_percent),  position = position_dodge(0.9), vjust=-0.3, size=3.5)+
+                     ggtitle("Student population by race in five boroughs")
+sat_borough_chart
+
+```
+
+Let's compare average score of each subject(math, writing, and reading) by five boroughs. 
+```{r}
+#select neccessary variables and calculate average of each subjcet
+sat_score1 <- sat %>%
+               select(Borough, Percent.White, Percent.Black, Percent.Hispanic, Percent.Asian, Average.Score..SAT.Math.,Average.Score..SAT.Reading., Average.Score..SAT.Writing.) %>%
+               group_by(Borough) %>%
+               summarise(math = round(mean(Average.Score..SAT.Math., na.rm=TRUE), digits = 2), writing = round(mean(Average.Score..SAT.Writing., na.rm=TRUE),digits = 2), reading = round(mean(Average.Score..SAT.Reading.,na.rm=TRUE),digits = 2))
+
+sat_score1
+
+```
+
+Since sat_score1 table looks untidy, we are also going to make the table into tidy format with using gather() function. And then barchart is created in order to compare scores by the boroughs. 
+```{r}
+# graph expression Borough, race and SAT score
+sat_score2 <- gather(sat_score1, SAT_subject, avg, 2:4)
+sat_score2
+sat_score_chart <- ggplot(sat_score2, aes(x= SAT_subject, y= avg, fill=Borough))+
+                     geom_bar(stat = "identity", position = "dodge")+
+                     geom_text(aes(label=avg),  position = position_dodge(0.9), vjust=-0.3, size=2.5)+
+                     ggtitle("Student SAT score by subject in five boroughs")
+sat_score_chart
+
+```
+
+
+**Conclusion** 
+
+A. How the student population looks like by race in all five boroughs?
+   According to chart "Student population by race in five boroughs"; 
+    * Bronx has the highest Hispanic students
+    * Brooklyn has the most percentage of black students
+    * Manhattan has the highest Hispanic student rate
+    * Queens is the most evenly distributed, but Hispanic is the highest. Also there is the largest population of Asian students among five boroughs. 
+    * Staten Island has the highest white students
+    
+B. How SAT scores are different by regions(boroughs)?
+  Based on barchart "Student SAT score by subject in five boroughs", students from Staten Island have the highest average score of all three subjects.    Whereas, students from Bronx has the lowest average score of all three subjects. 
+
+
+
+### Dataset 3. Life expectancy 
+
+1. Reading .csv file
+
+Let's read the .CSV file.
+
+```{r}
+life_expectancy <- read.csv("/Users/ekhahm/Desktop/led.csv", header = TRUE, stringsAsFactors = FALSE, na.strings = TRUE)
+head(life_expectancy)
+
+```
+
+**Question**   
+
+A. What is the life expectancy between Developing countries vs. Developed countries?  
+B. What is the relationship between AdultMotality and BMI?  
+
+
+2. Modify table and Analysis 
+
+1) Let's transform the table above in order to make an analysis easier. Since we need to compare Developing vs. Developed, grouped by status is used. This case boxplot is created in order to compare mean, median, IQR, minimum and maximum values. 
+```{r}
+develop_table <- life_expectancy %>%
+                 select(Status, Lifeexpectancy) %>%
+                 group_by(Status)
+develop_table
+
+develop_chart <- ggplot(develop_table, aes(x= Status, y=Lifeexpectancy))+
+                 geom_boxplot(aes(color= Status))+
+                 stat_summary(fun.y=mean, geom="point", shape=5, size=4)+
+                 ggtitle("Boxplot of Life expectancy by Status of country")
+develop_chart
+```
+
+
+2) Next, we are going to select adult status, mortality rate, and BMI. And then the relationship will be found by using of scatter plot with line. Let's make two different graphs by status of country. 
+
+```{r}
+adult <- life_expectancy %>%
+     select(Status, AdultMortality, BMI)
+chart <- ggplot(adult, aes(x= BMI, y= AdultMortality))+
+         geom_point(alpha=0.1)+
+         geom_smooth(method=lm)+
+         facet_wrap(~Status)+
+         ggtitle("Scatterplot of BMI vs. Adult Mortality by Status of country")
+chart
+```
+
+**Conclusion**  
+
+A. What is the life expectancy between Developing countries vs. Developed countries?
+   According to "Boxplot of Life expectancy by Status of country", average and median of life expectancy in developed countries is higher than average     and median in developing countries. A distribution in developed countries is much tighter than developing countries.  
+   
+B. What is the relationship between AdultMotality and BMI? 
+   Based on "Scatterplot of BMI vs. Adult Mortality by Status of country", as BMI is smaller, adult mortality is getting higher in developing countries. 
+   However, in developed countries, the relationship between BMI and adult mortality could not be found. 
+   
