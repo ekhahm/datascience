@@ -1,0 +1,27 @@
+[
+ {
+   "Title": "Title ",
+   "Author": "Author ",
+   "ISBN": "ISBN",
+   "Genre": "Genre"
+ },
+{ 
+	“Title”: ”Harry potter and the philosopher's stone",	
+	"Author": "J.K.Rolling",
+	"ISBN": "0747532699",
+	"Genre": "Fantasy"
+}, 
+{ 
+	"Title": "Hitchhiker's guide to the galaxy book",
+	"Author": "Douglas Adams",
+	"ISBN": "0330258648",
+	"Genre": "Comic Science fiction"
+}
+
+{
+	"Title": "Good Omens: The Nice and Accurate Prophecies of Agnes Nutter, Witch",
+	"Author": "Terry Pratchett, Neil Gaiman",
+	"ISBN": "057504800X",
+	"Genre": "Horror"
+}
+]
