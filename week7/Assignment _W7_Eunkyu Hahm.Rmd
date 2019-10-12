@@ -1,0 +1,87 @@
+---
+title: "Assignment week7"
+author: "Eunkyu Hahm"
+date: "10/11/2019"
+output:
+  html_document:
+    df_print: paged
+    highlight: tango
+    theme: united
+    pandoc_args: [
+      "--title-prefix", "Foo",
+      "--id-prefix", "Bar"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# *Loading packages*  
+Firstly, let's load necessary packages. XML package is used to parse XML and html file, and jsonlite is used to parse json file. 
+```{r}
+library(RCurl)
+library(XML)
+library(jsonlite)
+library(DT)
+library(stringr)
+library(tidyr)
+library(dplyr)
+```
+
+## HTML
+
+Let's read html file from github with using getURL() function and then read html table. Since the clasee of html_book is a list, I used data.frame() function in order to convert to data frame class.
+```{r}
+html <- getURL("https://raw.githubusercontent.com/ekhahm/datascience/master/week7/books.html")
+html_book<- readHTMLTable(html)
+html_book
+class(html_book)
+html_df <- data.frame(html_book)
+html_df
+```
+Now, we are taking a look of the html data table. 
+```{r}
+options(DT.options = list(dom = 't', scrollX = TRUE))
+datatable(html_df)
+```
+
+## XML  
+Let's get xml file from github with using getURL() function and then parse xml table with xmlParse(). I used getNodeSet() function to find matching each node in an xml treen and then change the class to dataframe. Lastly set the names in an object for each node. 
+```{r}
+xml <-getURL("https://raw.githubusercontent.com/ekhahm/datascience/master/week7/books.xml")
+xml_book <- xmlParse(xml)
+
+a <- setNames(xmlToDataFrame(node = getNodeSet(xml_book, "//root/book/Title")), "Title")
+b <- setNames(xmlToDataFrame(node = getNodeSet(xml_book, "//root/book/Author")), "Author")
+c <- setNames(xmlToDataFrame(node = getNodeSet(xml_book, "//root/book/ISBN")), "ISBN")
+d <- setNames(xmlToDataFrame(node = getNodeSet(xml_book, "//root/book/Genre")), "Genre")
+
+xml_book <- cbind(a,b,c,d)
+xml_book
+```
+
+Now, we are taking a look of xml data table. 
+```{r}
+datatable(xml_book)
+```
+
+
+## JSON
+
+Let's read JSON file from github with using getURL() function and then convert r object from Json using fromJSON . Since the clasee of json_book is a list, I used data.frame() function in order to convert to data frame class.
+```{r}
+json <- getURL("https://raw.githubusercontent.com/ekhahm/datascience/master/week7/books.json")
+json_book <- fromJSON(json)
+json_book
+json_df <- data.frame(json_book)
+json_df
+```
+Now we are looking at the data table of json_df
+```{r}
+datatable(json_df)
+```
+
+# *Conclusion* 
+
+The three data frames from html, xml, and json files look identical. 
