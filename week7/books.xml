@@ -1,0 +1,21 @@
+
+<root>
+    <book>
+        <Title>Harry potter and the philosopher's stone </Title>
+        <Author>J. K. Rowling</Author>
+        <ISBN>0747532699</ISBN>
+        <Genre>Fantasy</Genre>
+    </book>
+    <book>
+        <Title>Hitchhiker's guide to the galaxy book </Title>
+        <Author>Douglas Adams</Author>
+        <ISBN>0330258648</ISBN>
+        <Genre>Comic science fiction</Genre>
+    </book>
+    <book>
+        <Title>Good Omens: The Nice and Accurate Prophecies of Agnes Nutter, Witch</Title>
+        <Author>Terry Pratchett, Neil Gaiman</Author>
+        <ISBN>057504800X</ISBN>
+        <Genre>Horror</Genre>
+    </book>
+</root>
