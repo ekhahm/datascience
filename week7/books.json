@@ -1,4 +1,4 @@
-{"Favorite Books": [
+[
 	{ 
 	"Title": "Harry potter and the philosopher's stone",	
 	"Author": "J.K.Rolling",
@@ -18,4 +18,4 @@
 	"ISBN": "057504800X",
 	"Genre": "Horror"
 	}
-]}
+]
