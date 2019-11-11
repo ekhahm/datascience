@@ -1,0 +1,42 @@
+---
+title: "Discussion 11. Recommender System"
+author: "Eunkyu Hahm"
+date: "11/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. Perform a Scenario Design analysis as described below.  Consider whether it makes sense for your selected recommender system to perform scenario design twice, once for the organization (e.g. Amazon.com) and once for the organization's customers.  
+
+2. Attempt to reverse engineer what you can about the site, from the site interface and any available information that you can find on the Internet or elsewhere.  
+
+3. Include specific recommendations about how to improve the site's recommendation capabilities going forward.   
+
+4. Create your report using an R Markdown file, and create a discussion thread with a link to the GitHub repo where your Markdown file notebook resides.  You are not expected to need to write code for this discussion assignment.  
+
+I chose *Groupon.com* to analyze the recommender system.  
+
+*Groupon* is an American worldwide e-commerce marketplace connecting subscribers with local merchants by offering activities, travel, goods and services. Recommneded deals features is being offered by Groupon to Groupon users in order to proived local deals which are personlized in the user experience. 
+
+##  Scenario Design Analysis  
+
+**1. Who are the target users?**  
+Groupon subscribers 
+
+**2. What are the key goals?**  
+Their key goal is to redefine how small businesses attract and retain customers by providing them with customizable and scalable marketing tools and services to profitably grow their businesses.
+
+**3. How can Groupon help them accomplish their goals?**  
+In order to provide more intersting deals for users, they use a series of algorithms for personalized local deals by using recommendation system.  
+
+## Reverse Engineering
+
+Collaborative filtering is used in this recommender system. The website has a feature that saves recently viewed deals. With using this users’ historical preference on a set of deals, the website provides personalized recommendations. 
+Apriori algorithm is also used. It is a classical algorithm in data mining. It is used for mining frequent itemsets and relevant association rules. The rule looks for the association between deals.
+Recommendations by quantity sold is also used. Depending on how many coupons are sold, they recommend deals to users. This is very efficent method used by e-commerce website because it is simply sorting all deals by quantity of coupons sold.  
+
+## Room for improvement 
+As a Groupon user, I think the recommender system could be better in order to find best deals and connect the customers and small businesses. Optimizing ranking algoritmns would give the highest scores to items that a user is most likely to buy. The implementation of ranking algorithm may be helpful and increases the accuracy.
