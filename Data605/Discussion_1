@@ -1,0 +1,38 @@
+---
+title: "Data605 discussion 1"
+author: "Eunkyu (Emily) Hahm"
+date: "1/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+page 19. 
+
+## exercise C50
+A three-digit number has two properties. The tens-digit and the ones-digit add up to 5. If the number is written with the digits in the reverse order, and then subtracted from the original number, the result is 792. Use a system of equations to find all of the three-digit numbers with these properties.
+
+Solution :
+
+The hundred's digit = x  
+The tens digit = y  
+The ones digit = z  
+
+y + z = 5
+y = 5- z (z is equal or less than 5)
+
+100 * x + 10 * (5-z) + z - 100* z - 10* (5-z) - x = 792
+
+99 * x - 99 * z = 792
+ 
+x - z = 8
+
+As x can be 8 and 9 only, z would be 0 and 1. 
+
+Thus, the three-digit number is 850 or 941
+
+
+
+
